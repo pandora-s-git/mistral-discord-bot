@@ -112,10 +112,13 @@ This function is triggered whenever a message is sent in a channel where the bot
 
 ## Step 3: Running the Bot
 
-1. Save the Python script.
-2. Open your terminal or command prompt.
-3. Navigate to the directory containing your script.
-4. Run the script using the command: `python bot.py`.
+Add the following code at the end of your script to run the bot:
+
+```python
+bot.run(BOT_TOKEN)
+```
+
+This function runs the bot with your specified bot token.
 
 ## Done!!
 
