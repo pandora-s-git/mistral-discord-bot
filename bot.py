@@ -1,6 +1,5 @@
-# Import the dependencies required to use Mistral's Client. Since Discord works mostly asynchronously, we want the Async Client.
-from mistralai.async_client import MistralAsyncClient
-from mistralai.models.chat_completion import ChatMessage
+# Import the dependencies required to use Mistral's Client.
+from mistralai import Mistral
 
 # We can then import Discord's dependencies.
 import discord
@@ -8,11 +7,11 @@ from discord.ext import commands
 
 # Mistral's API KEY and other settings.
 API_KEY = "YOUR_API_KEY"
-model = "open-mistral-7b"
+model = "mistral-small-latest"
 system_prompt = "You are an AI Assistant in a Discord Server."
 
 # We create the client instance.
-client = MistralAsyncClient(api_key = API_KEY)
+client = Mistral(api_key = API_KEY)
 
 # Discord bot settings.
 BOT_TOKEN = "YOUR_BOT_TOKEN"
@@ -41,16 +40,16 @@ async def on_message(message: discord.Message):
     if bot.user in message.mentions and message.author != bot.user:
 
         # We get all previous messages and make a ChatMessage list. Here we get the previous 5 messages.
-        messages = [ChatMessage(role = "assistant" if m.author == bot.user else "user", content = clean_message_content(m)) async for m in message.channel.history(limit = 5)]
+        messages = [{"role": "assistant" if m.author == bot.user else "user", content : clean_message_content(m)} async for m in message.channel.history(limit = 5)]
         
         # Because of how Discord handles it, we have to reverse the order of the messages since they are originally from the most recent to oldest; we want them from oldest to the most recent.
         messages = messages[::-1]
 
         # We don't want to forget the system prompt defined earlier.
-        messages = [ChatMessage(role = "system", content = system_prompt)] + messages
+        messages = [{"role": "system","content": system_prompt}] + messages
 
         # We finally send the request and wait for a response.
-        response = await client.chat(model = model, messages = messages, max_tokens = 256)
+        response = await client.chat.complete_async(model = model, messages = messages, max_tokens = 256)
 
         # We want to then retrieve the content and reply.
         response_content = response.choices[0].message.content
