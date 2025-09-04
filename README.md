@@ -28,13 +28,12 @@ This command installs the Mistral AI client library (`mistralai`) and the Discor
 In your Python script, begin by importing the required modules:
 
 ```python
-from mistralai.async_client import MistralAsyncClient
-from mistralai.models.chat_completion import ChatMessage
+from mistralai import Mistral
 import discord
 from discord.ext import commands
 ```
 
-Here, we import the MistralAsyncClient and ChatMessage classes from the Mistral AI library, as well as the necessary components from the Discord.py library.
+Here, we import the Mistral class from the Mistral AI library, as well as the necessary components from the Discord.py library.
 
 ### Setting Up Mistral's API and Discord Bot Settings
 
@@ -42,7 +41,7 @@ Next, define your Mistral API key, Mistral model, system prompt, Discord bot tok
 
 ```python
 API_KEY = "YOUR_API_KEY"
-model = "open-mistral-7b"
+model = "mistral-small-latest"
 system_prompt = "You are an AI Assistant in a Discord Server."
 BOT_TOKEN = "YOUR_BOT_TOKEN"
 prefix = "mistral!"
@@ -55,11 +54,11 @@ Replace `"YOUR_API_KEY"` and `"YOUR_BOT_TOKEN"` with your actual Mistral API key
 Create instances of Mistral's API client and Discord bot:
 
 ```python
-client = MistralAsyncClient(api_key=API_KEY)
+client = Mistral(api_key=API_KEY)
 bot = commands.Bot(command_prefix=prefix, intents=discord.Intents.all())
 ```
 
-The `MistralAsyncClient` is used to interact with Mistral's API asynchronously. The `commands.Bot` class represents your Discord bot instance.
+The `Mistral` is used to interact with Mistral's API. The `commands.Bot` class represents your Discord bot instance.
 
 ### Handling Bot's Ready Event
 
@@ -96,13 +95,13 @@ async def on_message(message: discord.Message):
 
     if bot.user in message.mentions and message.author != bot.user:
 
-        messages = [ChatMessage(role="assistant" if m.author == bot.user else "user", content=clean_message_content(m)) async for m in message.channel.history(limit=5)]
+        messages = [{"role": "assistant" if m.author == bot.user else "user", "content": clean_message_content(m)} async for m in message.channel.history(limit=5)]
         
         messages = messages[::-1]
 
-        messages = [ChatMessage(role="system", content=system_prompt)] + messages
+        messages = [{"role": "system", "content": system_prompt}] + messages
 
-        response = await client.chat(model=model, messages=messages, max_tokens=256)
+        response = await client.chat.complete_async(model=model, messages=messages, max_tokens=256)
 
         response_content = response.choices[0].message.content
         await message.reply(content=response_content)
